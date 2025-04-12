@@ -4,10 +4,9 @@
   <meta charset="UTF-8">
   <title>Validasi Token</title>
   <style>
-    body { font-family: sans-serif; padding: 40px; max-width: 400px; margin: auto; }
+    body { font-family: sans-serif; padding: 40px; max-width: 400px; margin: auto; text-align: center; }
     input, button { width: 100%; padding: 10px; margin: 10px 0; font-size: 16px; }
-    #status { margin-top: 10px; font-weight: bold; }
-    #linkTujuan { margin-top: 20px; font-weight: bold; color: blue; }
+    #status { margin-top: 20px; font-weight: bold; }
   </style>
 </head>
 <body>
@@ -15,31 +14,34 @@
   <input type="text" id="tokenInput" placeholder="Masukkan token" />
   <button onclick="validateToken()">Cek Token</button>
   <p id="status"></p>
-  <p id="linkTujuan" style="display:none;"></p>
 
   <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwyONj36jgb1ZgdPgMLVX3VrwK04P3kvJ25zyp4v3W639UzGaPxpeKtCPRkfZxRz5Ak/exec"; // ganti juga di sini
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwyONj36jgb1ZgdPgMLVX3VrwK04P3kvJ25zyp4v3W639UzGaPxpeKtCPRkfZxRz5Ak/exec"; // Ganti dengan ID kamu
 
     async function validateToken() {
-      const token = document.getElementById("tokenInput").value;
+      const token = document.getElementById("tokenInput").value.trim();
       const statusEl = document.getElementById("status");
-      const linkEl = document.getElementById("linkTujuan");
 
       if (!token) {
         statusEl.innerText = "❌ Harap masukkan token!";
         return;
       }
 
-      const res = await fetch(`${SCRIPT_URL}?action=check&token=${encodeURIComponent(token)}`);
-      const data = await res.json();
+      statusEl.innerText = "⏳ Memeriksa token...";
+      try {
+        const res = await fetch(`${SCRIPT_URL}?action=check&token=${encodeURIComponent(token)}`);
+        const data = await res.json();
 
-      if (data.valid) {
-        statusEl.innerText = "✅ Token valid!";
-        linkEl.innerHTML = `👉 <a href="${data.link}">${data.link}</a>`;
-        linkEl.style.display = "block";
-      } else {
-        statusEl.innerText = "❌ Token tidak valid atau sudah kadaluwarsa!";
-        linkEl.style.display = "none";
+        if (data.valid && data.link) {
+          statusEl.innerText = "✅ Token valid! Mengarahkan...";
+          setTimeout(() => {
+            window.location.href = data.link;
+          }, 1500);
+        } else {
+          statusEl.innerText = "❌ Token tidak valid atau sudah kadaluwarsa!";
+        }
+      } catch (err) {
+        statusEl.innerText = "⚠️ Terjadi kesalahan saat memeriksa token.";
       }
     }
   </script>
