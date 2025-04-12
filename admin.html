@@ -21,7 +21,6 @@
   <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx1cui_RH0Lrs1LQj3kyDDHLH_P3_RKxUkKHQuqH3FBWz3Wy6Wg60nlg_gOOZbC60A/exec";
     let currentToken = null;
-    let statusInterval = null;
     let timerInterval = null;
     let expireTime = null; // Timestamp
 
@@ -35,36 +34,14 @@
       const data = await response.json();
       currentToken = data.token;
       document.getElementById("token").innerText = `Token: ${currentToken}`;
-      
-      // Set waktu kadaluarsa (5 menit dari sekarang)
+
+      // Token aktif selama 5 menit (300.000 ms)
       expireTime = new Date().getTime() + 5 * 60 * 1000;
 
+      document.getElementById("status").innerText = "✅ Token masih aktif";
+      document.getElementById("status").style.color = "green";
+
       startCountdown();
-      checkStatus(); // check immediately
-      if (statusInterval) clearInterval(statusInterval);
-      statusInterval = setInterval(checkStatus, 5000);
-    }
-
-    async function checkStatus() {
-      if (!currentToken) return;
-
-      const res = await fetch(`${SCRIPT_URL}?action=check`);
-      const data = await res.json();
-
-      const isValid = data.activeTokens.includes(currentToken);
-      const statusEl = document.getElementById("status");
-
-      if (isValid) {
-        statusEl.innerText = "✅ Token masih aktif";
-        statusEl.style.color = "green";
-      } else {
-        statusEl.innerText = "❌ Token sudah kedaluwarsa";
-        statusEl.style.color = "red";
-        document.getElementById("generateBtn").disabled = false;
-        clearInterval(statusInterval);
-        clearInterval(timerInterval);
-        document.getElementById("timer").innerText = "";
-      }
     }
 
     function startCountdown() {
@@ -79,6 +56,9 @@
 
       if (distance <= 0) {
         document.getElementById("timer").innerText = "⏳ Waktu habis";
+        document.getElementById("status").innerText = "❌ Token sudah kedaluwarsa";
+        document.getElementById("status").style.color = "red";
+        document.getElementById("generateBtn").disabled = false;
         clearInterval(timerInterval);
         return;
       }
