@@ -1,38 +1,43 @@
 <!DOCTYPE html>
-<html lang="id">
+<html>
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Generate Token</title>
   <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
+    /* Basic styling */
+    body { 
+      font-family: 'Segoe UI', sans-serif; 
+      padding: 20px; 
+      background-color: #f7f7f7; 
       margin: 0;
-      padding: 20px;
-      background: #f9f9f9;
     }
 
     h2 {
       text-align: center;
       margin-bottom: 20px;
+      color: #333;
     }
 
+    /* Container for form and result */
     .container {
-      max-width: 800px;
+      max-width: 500px;
       margin: auto;
       background: #fff;
       padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     }
 
+    /* Input and button styling */
     input, button {
       width: 100%;
-      padding: 10px;
+      padding: 12px;
       margin: 10px 0;
       font-size: 16px;
       border-radius: 6px;
       border: 1px solid #ccc;
+      box-sizing: border-box;
     }
 
     button {
@@ -46,49 +51,113 @@
       background-color: #0056b3;
     }
 
-    #message {
+    /* Token, status, and timer styling */
+    #token, #status, #timer {
+      margin-top: 10px;
+      font-weight: bold;
       text-align: center;
-      font-size: 16px;
+    }
+
+    #status {
       margin-top: 20px;
     }
 
+    /* Responsive design */
     @media (max-width: 600px) {
+      body {
+        padding: 10px;
+      }
+
+      .container {
+        padding: 15px;
+      }
+
       input, button {
         font-size: 14px;
-        padding: 8px;
+        padding: 10px;
+      }
+    }
+
+    /* Larger screens */
+    @media (min-width: 600px) {
+      .container {
+        width: 50%;
       }
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h2>Generate Token</h2>
-    <form id="generateForm">
-      <input type="text" id="linkInput" placeholder="Masukkan Link Tujuan" required>
-      <button type="submit">Generate Tokens</button>
-    </form>
-    <p id="message"></p>
+    <h2>Generate Token + Link</h2>
+    <input type="text" id="linkInput" placeholder="Masukkan link tujuan" />
+    <button id="generateBtn" onclick="generateToken()">Generate</button>
+    <button id="checkBtn" onclick="checkTokenStatus()" style="display:none;">Cek Status Token</button>
+
+    <p id="token">Token belum dibuat.</p>
+    <p id="status"></p>
+    <p id="timer"></p>
   </div>
 
   <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwyONj36jgb1ZgdPgMLVX3VrwK04P3kvJ25zyp4v3W639UzGaPxpeKtCPRkfZxRz5Ak/exec"; // Ganti dengan ID kamu
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwyONj36jgb1ZgdPgMLVX3VrwK04P3kvJ25zyp4v3W639UzGaPxpeKtCPRkfZxRz5Ak/exec"; // ganti dengan ID kamu
+    let currentToken = null;
+    let expireTime = null;
+    let timerInterval = null;
 
-    document.getElementById("generateForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
+    // Fungsi untuk generate token baru
+    async function generateToken() {
       const link = document.getElementById("linkInput").value;
-      const message = document.getElementById("message");
+      if (!link) return alert("Masukkan link terlebih dahulu!");
 
-      message.innerText = "Generating token...";
+      const btn = document.getElementById("generateBtn");
+      btn.disabled = true;
 
-      const res = await fetch(`${SCRIPT_URL}?action=generate&link=${encodeURIComponent(link)}`);
-      const data = await res.json();
+      // Memanggil Google Apps Script untuk generate token
+      const response = await fetch(`${SCRIPT_URL}?action=generate&link=${encodeURIComponent(link)}`);
+      const data = await response.json();
+      currentToken = data.token;
 
-      if (data.success) {
-        message.innerHTML = `Token generated: <strong>${data.token}</strong><br>Link: <a href="${link}" target="_blank">${link}</a>`;
+      // Menampilkan token dan status
+      document.getElementById("token").innerText = `Token: ${currentToken}`;
+      document.getElementById("status").innerText = "✅ Token aktif selama 5 menit";
+      document.getElementById("checkBtn").style.display = "block";
+
+      // Mengatur waktu kedaluwarsa token
+      expireTime = new Date().getTime() + 5 * 60 * 1000;
+      startCountdown();
+    }
+
+    // Fungsi untuk memulai countdown
+    function startCountdown() {
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        const now = new Date().getTime();
+        const distance = expireTime - now;
+        if (distance <= 0) {
+          document.getElementById("timer").innerText = "⏳ Token kadaluwarsa";
+          document.getElementById("status").innerText = "❌ Token sudah kadaluwarsa";
+          document.getElementById("generateBtn").disabled = false;
+          clearInterval(timerInterval);
+        } else {
+          const m = Math.floor(distance / 60000);
+          const s = Math.floor((distance % 60000) / 1000);
+          document.getElementById("timer").innerText = `⏳ Token aktif selama: ${m}:${s.toString().padStart(2, '0')}`;
+        }
+      }, 1000);
+    }
+
+    // Fungsi untuk cek status token yang ada
+    async function checkTokenStatus() {
+      if (!currentToken) return alert("Belum ada token.");
+      const response = await fetch(`${SCRIPT_URL}?action=check&token=${currentToken}`);
+      const data = await response.json();
+
+      if (data.valid) {
+        document.getElementById("status").innerText = "✅ Token masih aktif!";
       } else {
-        message.innerText = "Failed to generate token!";
+        document.getElementById("status").innerText = "❌ Token sudah tidak berlaku!";
       }
-    });
+    }
   </script>
 </body>
 </html>
