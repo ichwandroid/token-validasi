@@ -46,56 +46,16 @@
       background-color: #0056b3;
     }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-
-    th, td {
-      padding: 12px 10px;
-      border-bottom: 1px solid #ddd;
+    .message {
       text-align: center;
-    }
-
-    th {
-      background-color: #f0f0f0;
-    }
-
-    .fade-out {
-      transition: opacity 1s ease-out;
-      opacity: 0;
+      font-size: 16px;
+      color: #333;
     }
 
     @media (max-width: 600px) {
-      table, thead, tbody, th, td, tr {
-        display: block;
-      }
-
-      thead {
-        display: none;
-      }
-
-      tr {
-        margin-bottom: 15px;
-        background: #fff;
-        border-radius: 10px;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-        padding: 10px;
-      }
-
-      td {
-        text-align: left;
-        padding: 8px 10px;
-        position: relative;
-      }
-
-      td::before {
-        content: attr(data-label);
-        font-weight: bold;
-        display: block;
-        margin-bottom: 4px;
-        color: #333;
+      input, button {
+        font-size: 14px;
+        padding: 8px;
       }
     }
   </style>
@@ -107,18 +67,7 @@
       <input type="text" id="tokenInput" placeholder="Masukkan Token" required>
       <button type="submit">Cek Token</button>
     </form>
-    <p id="message" style="text-align: center; font-size: 16px;"></p>
-
-    <table id="tokenTable">
-      <thead>
-        <tr>
-          <th>Token</th>
-          <th>Dibuat</th>
-          <th>Sisa Waktu</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+    <p id="message" class="message"></p>
   </div>
 
   <script>
@@ -135,30 +84,15 @@
       const data = await res.json();
 
       if (data.valid) {
-        message.innerText = `Token valid! Link tujuan: ${data.link}`;
+        message.innerText = `Token valid! Redirecting to link...`;
+        // Redirect ke link tujuan setelah token valid
+        setTimeout(() => {
+          window.location.href = data.link; // Redirect ke link yang diberikan oleh admin
+        }, 2000); // Tunggu 2 detik untuk memberikan pesan kepada pengguna
       } else {
         message.innerText = "Token tidak valid atau telah kedaluwarsa!";
       }
     });
-
-    async function fetchTokens() {
-      const res = await fetch(`${SCRIPT_URL}?action=all`);
-      const data = await res.json();
-      const tableBody = document.querySelector("#tokenTable tbody");
-      tableBody.innerHTML = "";
-
-      data.forEach(row => {
-        const rowEl = document.createElement("tr");
-        rowEl.innerHTML = `
-          <td>${row.token}</td>
-          <td>${new Date(row.timestamp).toLocaleTimeString()}</td>
-          <td>${row.remainingTime}</td>
-        `;
-        tableBody.appendChild(rowEl);
-      });
-    }
-
-    window.onload = fetchTokens;
   </script>
 </body>
 </html>
