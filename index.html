@@ -33,6 +33,7 @@
       font-size: 16px;
       border-radius: 6px;
       border: 1px solid #ccc;
+      box-sizing: border-box;
     }
 
     button {
@@ -52,6 +53,7 @@
       color: #333;
     }
 
+    /* Responsive Design */
     @media (max-width: 600px) {
       input, button {
         font-size: 14px;
@@ -62,7 +64,7 @@
 </head>
 <body>
   <div class="container">
-    <h2>Validasi Token</h2>
+    <h2>Validasi Token ASAT</h2>
     <form id="validateForm">
       <input type="text" id="tokenInput" placeholder="Masukkan Token" required>
       <button type="submit">Cek Token</button>
