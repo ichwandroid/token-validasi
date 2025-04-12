@@ -7,21 +7,87 @@
     body { font-family: sans-serif; padding: 40px; max-width: 400px; margin: auto; }
     h2 { margin-bottom: 20px; }
     button { padding: 10px 20px; font-size: 16px; }
-    #token { font-size: 24px; font-weight: bold; margin-top: 20px; color: green; }
+    #token { font-size: 24px; font-weight: bold; margin-top: 20px; }
+    #status, #timer { margin-top: 10px; font-weight: bold; }
   </style>
 </head>
 <body>
   <h2>Generate Token Baru</h2>
-  <button onclick="generateToken()">Generate</button>
+  <button id="generateBtn" onclick="generateToken()">Generate</button>
   <p id="token">Token belum dibuat.</p>
+  <p id="status"></p>
+  <p id="timer"></p>
 
   <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx1cui_RH0Lrs1LQj3kyDDHLH_P3_RKxUkKHQuqH3FBWz3Wy6Wg60nlg_gOOZbC60A/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec";
+    let currentToken = null;
+    let statusInterval = null;
+    let timerInterval = null;
+    let expireTime = null; // Timestamp
 
     async function generateToken() {
+      const btn = document.getElementById("generateBtn");
+      btn.disabled = true;
+      document.getElementById("status").innerText = "Memuat...";
+      document.getElementById("timer").innerText = "";
+
       const response = await fetch(`${SCRIPT_URL}?action=generate`);
       const data = await response.json();
-      document.getElementById("token").innerText = `Token: ${data.token}`;
+      currentToken = data.token;
+      document.getElementById("token").innerText = `Token: ${currentToken}`;
+      
+      // Set waktu kadaluarsa (5 menit dari sekarang)
+      expireTime = new Date().getTime() + 5 * 60 * 1000;
+
+      startCountdown();
+      checkStatus(); // check immediately
+      if (statusInterval) clearInterval(statusInterval);
+      statusInterval = setInterval(checkStatus, 5000);
+    }
+
+    async function checkStatus() {
+      if (!currentToken) return;
+
+      const res = await fetch(`${SCRIPT_URL}?action=check`);
+      const data = await res.json();
+
+      const isValid = data.activeTokens.includes(currentToken);
+      const statusEl = document.getElementById("status");
+
+      if (isValid) {
+        statusEl.innerText = "✅ Token masih aktif";
+        statusEl.style.color = "green";
+      } else {
+        statusEl.innerText = "❌ Token sudah kedaluwarsa";
+        statusEl.style.color = "red";
+        document.getElementById("generateBtn").disabled = false;
+        clearInterval(statusInterval);
+        clearInterval(timerInterval);
+        document.getElementById("timer").innerText = "";
+      }
+    }
+
+    function startCountdown() {
+      if (timerInterval) clearInterval(timerInterval);
+      updateCountdown();
+      timerInterval = setInterval(updateCountdown, 1000);
+    }
+
+    function updateCountdown() {
+      const now = new Date().getTime();
+      const distance = expireTime - now;
+
+      if (distance <= 0) {
+        document.getElementById("timer").innerText = "⏳ Waktu habis";
+        clearInterval(timerInterval);
+        return;
+      }
+
+      const minutes = Math.floor(distance / (1000 * 60));
+      const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+      document.getElementById("timer").innerText =
+        `⏳ Token aktif selama: ${minutes}:${seconds.toString().padStart(2, '0')}`;
     }
   </script>
 </body>
