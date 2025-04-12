@@ -20,7 +20,7 @@
   <p id="timer"></p>
 
   <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx1cui_RH0Lrs1LQj3kyDDHLH_P3_RKxUkKHQuqH3FBWz3Wy6Wg60nlg_gOOZbC60A/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwyONj36jgb1ZgdPgMLVX3VrwK04P3kvJ25zyp4v3W639UzGaPxpeKtCPRkfZxRz5Ak/exec"; // ganti dengan ID kamu
     let currentToken = null;
     let expireTime = null;
     let timerInterval = null;
@@ -31,7 +31,6 @@
 
       const btn = document.getElementById("generateBtn");
       btn.disabled = true;
-      document.getElementById("status").innerText = "Memuat...";
 
       const response = await fetch(`${SCRIPT_URL}?action=generate&link=${encodeURIComponent(link)}`);
       const data = await response.json();
@@ -39,9 +38,9 @@
 
       document.getElementById("token").innerText = `Token: ${currentToken}`;
       document.getElementById("status").innerText = "✅ Token aktif selama 5 menit";
-      expireTime = new Date().getTime() + 5 * 60 * 1000;
       document.getElementById("checkBtn").style.display = "block";
 
+      expireTime = new Date().getTime() + 5 * 60 * 1000;
       startCountdown();
     }
 
@@ -64,17 +63,14 @@
     }
 
     async function checkTokenStatus() {
-      if (!currentToken) return alert("Belum ada token yang dibuat.");
-
-      const response = await fetch(`${SCRIPT_URL}?action=check&token=${encodeURIComponent(currentToken)}`);
+      if (!currentToken) return alert("Belum ada token.");
+      const response = await fetch(`${SCRIPT_URL}?action=check&token=${currentToken}`);
       const data = await response.json();
 
       if (data.valid) {
         document.getElementById("status").innerText = "✅ Token masih aktif!";
-        document.getElementById("status").style.color = "green";
       } else {
         document.getElementById("status").innerText = "❌ Token sudah tidak berlaku!";
-        document.getElementById("status").style.color = "red";
       }
     }
   </script>
