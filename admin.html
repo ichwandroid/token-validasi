@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Generate Token</title>
+  <style>
+    body { font-family: sans-serif; padding: 40px; max-width: 400px; margin: auto; }
+    h2 { margin-bottom: 20px; }
+    button { padding: 10px 20px; font-size: 16px; }
+    #token { font-size: 24px; font-weight: bold; margin-top: 20px; color: green; }
+  </style>
+</head>
+<body>
+  <h2>Generate Token Baru</h2>
+  <button onclick="generateToken()">Generate</button>
+  <p id="token">Token belum dibuat.</p>
+
+  <script>
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx1cui_RH0Lrs1LQj3kyDDHLH_P3_RKxUkKHQuqH3FBWz3Wy6Wg60nlg_gOOZbC60A/exec";
+
+    async function generateToken() {
+      const response = await fetch(`${SCRIPT_URL}?action=generate`);
+      const data = await response.json();
+      document.getElementById("token").innerText = `Token: ${data.token}`;
+    }
+  </script>
+</body>
+</html>
