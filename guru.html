@@ -9,6 +9,7 @@
     table { width: 100%; border-collapse: collapse; margin-top: 10px; }
     th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
     th { background: #f0f0f0; }
+    .fade-out { transition: opacity 1s ease-out; opacity: 0; }
   </style>
 </head>
 <body>
@@ -28,8 +29,15 @@
 
   <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwyONj36jgb1ZgdPgMLVX3VrwK04P3kvJ25zyp4v3W639UzGaPxpeKtCPRkfZxRz5Ak/exec"; // Ganti dengan ID kamu
+    let countdownIntervals = [];
+
+    function clearOldIntervals() {
+      countdownIntervals.forEach(clearInterval);
+      countdownIntervals = [];
+    }
 
     async function fetchTokens() {
+      clearOldIntervals();
       const res = await fetch(`${SCRIPT_URL}?action=all`);
       const data = await res.json();
       const tableBody = document.querySelector("#tokenTable tbody");
@@ -37,31 +45,52 @@
 
       const now = new Date();
 
-      data.forEach(row => {
+      data.forEach((row, index) => {
         const token = row.token;
         const link = row.link;
         const timestamp = new Date(row.timestamp);
-        const ageMinutes = (now - timestamp) / 60000;
-        const remaining = 5 - ageMinutes;
+        const rowEl = document.createElement("tr");
 
-        if (remaining > 0) {
-          const rowEl = document.createElement("tr");
-          rowEl.innerHTML = `
-            <td>${token}</td>
-            <td><a href="${link}" target="_blank">${link}</a></td>
-            <td>${timestamp.toLocaleTimeString()}</td>
-            <td>${Math.floor(remaining)} menit</td>
-          `;
-          tableBody.appendChild(rowEl);
-        }
+        const countdownId = `countdown-${index}`;
+        rowEl.setAttribute("id", `row-${index}`);
+
+        rowEl.innerHTML = `
+          <td>${token}</td>
+          <td><a href="${link}" target="_blank">${link}</a></td>
+          <td>${timestamp.toLocaleTimeString()}</td>
+          <td id="${countdownId}">...</td>
+        `;
+        tableBody.appendChild(rowEl);
+
+        const interval = setInterval(() => {
+          const now = new Date();
+          const ageMinutes = (now - timestamp) / 60000;
+          const remaining = 5 - ageMinutes;
+          const countdownEl = document.getElementById(countdownId);
+
+          if (remaining <= 0) {
+            clearInterval(interval);
+            countdownEl.innerText = "⛔ Expired";
+
+            // Hapus baris dengan animasi fade-out
+            const rowToRemove = document.getElementById(`row-${index}`);
+            rowToRemove.classList.add("fade-out");
+            setTimeout(() => rowToRemove.remove(), 1000);
+          } else {
+            const minutes = Math.floor(remaining);
+            const seconds = Math.floor((remaining - minutes) * 60);
+            countdownEl.innerText = `${minutes}m ${seconds}s`;
+          }
+        }, 1000);
+
+        countdownIntervals.push(interval);
       });
 
-      if (tableBody.innerHTML === "") {
+      if (data.length === 0) {
         tableBody.innerHTML = `<tr><td colspan="4">Tidak ada token aktif saat ini.</td></tr>`;
       }
     }
 
-    // Muat otomatis saat halaman dibuka
     window.onload = fetchTokens;
   </script>
 </body>
