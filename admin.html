@@ -1,78 +1,88 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Generate Token</title>
   <style>
-    body { font-family: sans-serif; padding: 40px; max-width: 400px; margin: auto; }
-    input, button { width: 100%; padding: 10px; margin: 10px 0; font-size: 16px; }
-    #token, #status, #timer { margin-top: 10px; font-weight: bold; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f9f9f9;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      font-size: 16px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    @media (max-width: 600px) {
+      input, button {
+        font-size: 14px;
+        padding: 8px;
+      }
+    }
   </style>
 </head>
 <body>
-  <h2>Generate Token + Link</h2>
-  <input type="text" id="linkInput" placeholder="Masukkan link tujuan dengan lengkap, misal: https://namadomain.com/page" />
-  <button id="generateBtn" onclick="generateToken()">Generate</button>
-  <button id="checkBtn" onclick="checkTokenStatus()" style="display:none;">Cek Status Token</button>
-
-  <p id="token">Token belum dibuat.</p>
-  <p id="status"></p>
-  <p id="timer"></p>
+  <div class="container">
+    <h2>Generate Token</h2>
+    <form id="generateForm">
+      <input type="text" id="linkInput" placeholder="Masukkan Link Tujuan" required>
+      <button type="submit">Generate Token</button>
+    </form>
+    <p id="message" style="text-align: center; font-size: 16px;"></p>
+  </div>
 
   <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwyONj36jgb1ZgdPgMLVX3VrwK04P3kvJ25zyp4v3W639UzGaPxpeKtCPRkfZxRz5Ak/exec"; // ganti dengan ID kamu
-    let currentToken = null;
-    let expireTime = null;
-    let timerInterval = null;
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwyONj36jgb1ZgdPgMLVX3VrwK04P3kvJ25zyp4v3W639UzGaPxpeKtCPRkfZxRz5Ak/exec"; // Ganti dengan ID kamu
 
-    async function generateToken() {
+    document.getElementById("generateForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
       const link = document.getElementById("linkInput").value;
-      if (!link) return alert("Masukkan link terlebih dahulu!");
+      const message = document.getElementById("message");
 
-      const btn = document.getElementById("generateBtn");
-      btn.disabled = true;
+      message.innerText = "Generating token...";
 
-      const response = await fetch(`${SCRIPT_URL}?action=generate&link=${encodeURIComponent(link)}`);
-      const data = await response.json();
-      currentToken = data.token;
+      const res = await fetch(`${SCRIPT_URL}?action=generate&link=${encodeURIComponent(link)}`);
+      const data = await res.json();
 
-      document.getElementById("token").innerText = `Token: ${currentToken}`;
-      document.getElementById("status").innerText = "✅ Token aktif selama 5 menit";
-      document.getElementById("checkBtn").style.display = "block";
-
-      expireTime = new Date().getTime() + 5 * 60 * 1000;
-      startCountdown();
-    }
-
-    function startCountdown() {
-      if (timerInterval) clearInterval(timerInterval);
-      timerInterval = setInterval(() => {
-        const now = new Date().getTime();
-        const distance = expireTime - now;
-        if (distance <= 0) {
-          document.getElementById("timer").innerText = "⏳ Token kadaluwarsa";
-          document.getElementById("status").innerText = "❌ Token sudah kadaluwarsa";
-          document.getElementById("generateBtn").disabled = false;
-          clearInterval(timerInterval);
-        } else {
-          const m = Math.floor(distance / 60000);
-          const s = Math.floor((distance % 60000) / 1000);
-          document.getElementById("timer").innerText = `⏳ Token aktif selama: ${m}:${s.toString().padStart(2, '0')}`;
-        }
-      }, 1000);
-    }
-
-    async function checkTokenStatus() {
-      if (!currentToken) return alert("Belum ada token.");
-      const response = await fetch(`${SCRIPT_URL}?action=check&token=${currentToken}`);
-      const data = await response.json();
-
-      if (data.valid) {
-        document.getElementById("status").innerText = "✅ Token masih aktif!";
+      if (data.success) {
+        message.innerHTML = `Token generated: <strong>${data.token}</strong><br>Link: <a href="${link}" target="_blank">${link}</a>`;
       } else {
-        document.getElementById("status").innerText = "❌ Token sudah tidak berlaku!";
+        message.innerText = "Failed to generate token!";
       }
-    }
+    });
   </script>
 </body>
 </html>

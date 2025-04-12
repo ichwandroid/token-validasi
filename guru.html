@@ -1,33 +1,119 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Daftar Token Aktif</title>
   <style>
-    body { font-family: sans-serif; padding: 40px; max-width: 600px; margin: auto; }
-    button { padding: 10px 20px; margin-bottom: 20px; font-size: 16px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
-    th { background: #f0f0f0; }
-    .fade-out { transition: opacity 1s ease-out; opacity: 0; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f9f9f9;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    button {
+      display: block;
+      margin: 0 auto 20px auto;
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    th, td {
+      padding: 12px 10px;
+      border-bottom: 1px solid #ddd;
+      text-align: center;
+    }
+
+    th {
+      background-color: #f0f0f0;
+    }
+
+    .fade-out {
+      transition: opacity 1s ease-out;
+      opacity: 0;
+    }
+
+    @media (max-width: 600px) {
+      table, thead, tbody, th, td, tr {
+        display: block;
+      }
+
+      thead {
+        display: none;
+      }
+
+      tr {
+        margin-bottom: 15px;
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        padding: 10px;
+      }
+
+      td {
+        text-align: left;
+        padding: 8px 10px;
+        position: relative;
+      }
+
+      td::before {
+        content: attr(data-label);
+        font-weight: bold;
+        display: block;
+        margin-bottom: 4px;
+        color: #333;
+      }
+    }
   </style>
 </head>
 <body>
-  <h2>Daftar Token Aktif</h2>
-  <button onclick="fetchTokens()">🔄 Refresh Daftar Token</button>
-  <table id="tokenTable">
-    <thead>
-      <tr>
-        <th>Token</th>
-        <th>Dibuat</th>
-        <th>Sisa Waktu</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+  <div class="container">
+    <h2>Daftar Token Aktif</h2>
+    <button onclick="fetchTokens()">🔄 Refresh Daftar Token</button>
+    <table id="tokenTable">
+      <thead>
+        <tr>
+          <th>Token</th>
+          <th>Dibuat</th>
+          <th>Sisa Waktu</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
 
   <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwyONj36jgb1ZgdPgMLVX3VrwK04P3kvJ25zyp4v3W639UzGaPxpeKtCPRkfZxRz5Ak/exec"; // Ganti dengan ID kamu
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwyONj36jgb1ZgdPgMLVX3VrwK04P3kvJ25zyp4v3W639UzGaPxpeKtCPRkfZxRz5Ak/exec"; // Ganti dengan milikmu
     let countdownIntervals = [];
 
     function clearOldIntervals() {
@@ -42,7 +128,10 @@
       const tableBody = document.querySelector("#tokenTable tbody");
       tableBody.innerHTML = "";
 
-      const now = new Date();
+      if (data.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="3">Tidak ada token aktif saat ini.</td></tr>`;
+        return;
+      }
 
       data.forEach((row, index) => {
         const token = row.token;
@@ -53,9 +142,9 @@
         rowEl.setAttribute("id", `row-${index}`);
 
         rowEl.innerHTML = `
-          <td>${token}</td>
-          <td>${timestamp.toLocaleTimeString()}</td>
-          <td id="${countdownId}">...</td>
+          <td data-label="Token">${token}</td>
+          <td data-label="Dibuat">${timestamp.toLocaleTimeString()}</td>
+          <td data-label="Sisa Waktu" id="${countdownId}">...</td>
         `;
         tableBody.appendChild(rowEl);
 
@@ -81,10 +170,6 @@
 
         countdownIntervals.push(interval);
       });
-
-      if (data.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="3">Tidak ada token aktif saat ini.</td></tr>`;
-      }
     }
 
     window.onload = fetchTokens;

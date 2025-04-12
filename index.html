@@ -1,49 +1,164 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Validasi Token</title>
   <style>
-    body { font-family: sans-serif; padding: 40px; max-width: 400px; margin: auto; text-align: center; }
-    input, button { width: 100%; padding: 10px; margin: 10px 0; font-size: 16px; }
-    #status { margin-top: 20px; font-weight: bold; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f9f9f9;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      font-size: 16px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th, td {
+      padding: 12px 10px;
+      border-bottom: 1px solid #ddd;
+      text-align: center;
+    }
+
+    th {
+      background-color: #f0f0f0;
+    }
+
+    .fade-out {
+      transition: opacity 1s ease-out;
+      opacity: 0;
+    }
+
+    @media (max-width: 600px) {
+      table, thead, tbody, th, td, tr {
+        display: block;
+      }
+
+      thead {
+        display: none;
+      }
+
+      tr {
+        margin-bottom: 15px;
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        padding: 10px;
+      }
+
+      td {
+        text-align: left;
+        padding: 8px 10px;
+        position: relative;
+      }
+
+      td::before {
+        content: attr(data-label);
+        font-weight: bold;
+        display: block;
+        margin-bottom: 4px;
+        color: #333;
+      }
+    }
   </style>
 </head>
 <body>
-  <h2>Validasi Token</h2>
-  <input type="text" id="tokenInput" placeholder="Masukkan token" />
-  <button onclick="validateToken()">Cek Token</button>
-  <p id="status"></p>
+  <div class="container">
+    <h2>Validasi Token</h2>
+    <form id="validateForm">
+      <input type="text" id="tokenInput" placeholder="Masukkan Token" required>
+      <button type="submit">Cek Token</button>
+    </form>
+    <p id="message" style="text-align: center; font-size: 16px;"></p>
+
+    <table id="tokenTable">
+      <thead>
+        <tr>
+          <th>Token</th>
+          <th>Dibuat</th>
+          <th>Sisa Waktu</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
 
   <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwyONj36jgb1ZgdPgMLVX3VrwK04P3kvJ25zyp4v3W639UzGaPxpeKtCPRkfZxRz5Ak/exec"; // Ganti dengan ID kamu
 
-    async function validateToken() {
-      const token = document.getElementById("tokenInput").value.trim();
-      const statusEl = document.getElementById("status");
+    document.getElementById("validateForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const token = document.getElementById("tokenInput").value;
+      const message = document.getElementById("message");
 
-      if (!token) {
-        statusEl.innerText = "❌ Harap masukkan token!";
-        return;
+      message.innerText = "Memeriksa token...";
+
+      const res = await fetch(`${SCRIPT_URL}?action=check&token=${encodeURIComponent(token)}`);
+      const data = await res.json();
+
+      if (data.valid) {
+        message.innerText = `Token valid! Link tujuan: ${data.link}`;
+      } else {
+        message.innerText = "Token tidak valid atau telah kedaluwarsa!";
       }
+    });
 
-      statusEl.innerText = "⏳ Memeriksa token...";
-      try {
-        const res = await fetch(`${SCRIPT_URL}?action=check&token=${encodeURIComponent(token)}`);
-        const data = await res.json();
+    async function fetchTokens() {
+      const res = await fetch(`${SCRIPT_URL}?action=all`);
+      const data = await res.json();
+      const tableBody = document.querySelector("#tokenTable tbody");
+      tableBody.innerHTML = "";
 
-        if (data.valid && data.link) {
-          statusEl.innerText = "✅ Token valid! Mengarahkan...";
-          setTimeout(() => {
-            window.location.href = data.link;
-          }, 1500);
-        } else {
-          statusEl.innerText = "❌ Token tidak valid atau sudah kadaluwarsa!";
-        }
-      } catch (err) {
-        statusEl.innerText = "⚠️ Terjadi kesalahan saat memeriksa token.";
-      }
+      data.forEach(row => {
+        const rowEl = document.createElement("tr");
+        rowEl.innerHTML = `
+          <td>${row.token}</td>
+          <td>${new Date(row.timestamp).toLocaleTimeString()}</td>
+          <td>${row.remainingTime}</td>
+        `;
+        tableBody.appendChild(rowEl);
+      });
     }
+
+    window.onload = fetchTokens;
   </script>
 </body>
 </html>
