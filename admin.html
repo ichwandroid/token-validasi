@@ -46,6 +46,12 @@
       background-color: #0056b3;
     }
 
+    #message {
+      text-align: center;
+      font-size: 16px;
+      margin-top: 20px;
+    }
+
     @media (max-width: 600px) {
       input, button {
         font-size: 14px;
@@ -59,9 +65,9 @@
     <h2>Generate Token</h2>
     <form id="generateForm">
       <input type="text" id="linkInput" placeholder="Masukkan Link Tujuan" required>
-      <button type="submit">Generate Token</button>
+      <button type="submit">Generate Tokens</button>
     </form>
-    <p id="message" style="text-align: center; font-size: 16px;"></p>
+    <p id="message"></p>
   </div>
 
   <script>
