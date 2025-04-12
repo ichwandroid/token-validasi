@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Validasi Token</title>
+  <style>
+    body { font-family: sans-serif; padding: 40px; }
+    input, button { padding: 10px; margin: 5px 0; }
+  </style>
+</head>
+<body>
+  <h2>Masukkan Token</h2>
+  <input type="text" id="tokenInput" placeholder="4 digit token" />
+  <button onclick="checkToken()">Cek Token</button>
+  <p id="result"></p>
+
+  <script>
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx1cui_RH0Lrs1LQj3kyDDHLH_P3_RKxUkKHQuqH3FBWz3Wy6Wg60nlg_gOOZbC60A/exec";
+
+    async function checkToken() {
+      const token = document.getElementById("tokenInput").value.trim().toUpperCase();
+      const res = await fetch(SCRIPT_URL + "?action=check");
+      const data = await res.json();
+
+      const isValid = data.tokens.includes(token);
+      const result = document.getElementById("result");
+
+      if (isValid) {
+        result.innerText = "Token valid dan masih aktif!";
+        result.style.color = "green";
+      } else {
+        result.innerText = "Token tidak valid atau sudah kedaluwarsa.";
+        result.style.color = "red";
+      }
+    }
+  </script>
+</body>
+</html>
