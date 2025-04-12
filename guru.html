@@ -19,7 +19,6 @@
     <thead>
       <tr>
         <th>Token</th>
-        <th>Link</th>
         <th>Dibuat</th>
         <th>Sisa Waktu</th>
       </tr>
@@ -47,7 +46,6 @@
 
       data.forEach((row, index) => {
         const token = row.token;
-        const link = row.link;
         const timestamp = new Date(row.timestamp);
         const rowEl = document.createElement("tr");
 
@@ -56,7 +54,6 @@
 
         rowEl.innerHTML = `
           <td>${token}</td>
-          <td><a href="${link}" target="_blank">${link}</a></td>
           <td>${timestamp.toLocaleTimeString()}</td>
           <td id="${countdownId}">...</td>
         `;
@@ -72,7 +69,6 @@
             clearInterval(interval);
             countdownEl.innerText = "⛔ Expired";
 
-            // Hapus baris dengan animasi fade-out
             const rowToRemove = document.getElementById(`row-${index}`);
             rowToRemove.classList.add("fade-out");
             setTimeout(() => rowToRemove.remove(), 1000);
@@ -87,7 +83,7 @@
       });
 
       if (data.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="4">Tidak ada token aktif saat ini.</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="3">Tidak ada token aktif saat ini.</td></tr>`;
       }
     }
 
